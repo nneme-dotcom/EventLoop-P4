@@ -1,0 +1,29 @@
+/**
+ * @fileoverview Conexión a MongoDB mediante Mongoose (ODM).
+ * A diferencia del Producto 3 (driver nativo), aquí usamos Mongoose para
+ * tener esquemas, validaciones automáticas y métodos de consulta enriquecidos.
+ * @module db
+ */
+
+require('dotenv').config();
+const mongoose = require('mongoose');
+
+/**
+ * Establece la conexión a MongoDB Atlas usando Mongoose.
+ * Usa el patrón singleton: si ya existe conexión activa, no abre una nueva.
+ *
+ * @async
+ * @returns {Promise<void>}
+ * @throws {Error} Si la URI no está definida o la conexión falla.
+ */
+async function conectarDB() {
+    if (mongoose.connection.readyState >= 1) return; // ya conectado
+
+    const uri = process.env.MONGODB_URI;
+    if (!uri) throw new Error('MONGODB_URI no definida en .env');
+
+    await mongoose.connect(uri);
+    console.log('✅ Mongoose conectado a MongoDB Atlas');
+}
+
+module.exports = { conectarDB };

@@ -1,0 +1,52 @@
+/* estilos.css – EventLoop P4 */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+}
+
+/* Tarjetas drag-and-drop del dashboard */
+.card-empleo {
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-empleo:hover {
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.card-empleo:active {
+    cursor: grabbing;
+}
+
+/* Zona de drop */
+.drop-zone {
+    min-height: 400px;
+    border: 2px dashed #0d6efd;
+    border-radius: 15px;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.drop-zone.drag-over {
+    background-color: #dbeafe;
+    border-color: #1d4ed8;
+}
+
+/* Badges de tipo */
+.badge.bg-warning { color: #333 !important; }
+
+/* Canvas gráfico */
+canvas {
+    max-width: 100%;
+}
+
+/* Botones de acción en tablas */
+.btn-sm {
+    font-size: 0.78rem;
+}

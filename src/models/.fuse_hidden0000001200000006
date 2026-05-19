@@ -1,0 +1,53 @@
+/**
+ * @fileoverview Modelo Mongoose para los empleos/voluntariados de EventLoop.
+ * Añade validaciones automáticas y el campo "creadoPor" para control de acceso
+ * por usuario (en el P3 no existía este concepto).
+ * @module models/Empleo
+ */
+
+const mongoose = require('mongoose');
+
+const empleoSchema = new mongoose.Schema({
+    titulo: {
+        type: String,
+        required: [true, 'El título es obligatorio'],
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: [true, 'El email de contacto es obligatorio'],
+        lowercase: true,
+        trim: true,
+        match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'El email no tiene un formato válido'],
+    },
+    fecha: {
+        type: String,
+        required: [true, 'La fecha es obligatoria'],
+    },
+    descripcion: {
+        type: String,
+        required: [true, 'La descripción es obligatoria'],
+        trim: true,
+    },
+    tipo: {
+        type: String,
+        enum: {
+            values: ['Oferta', 'Demanda'],
+            message: 'El tipo debe ser "Oferta" o "Demanda"',
+        },
+        required: [true, 'El tipo es obligatorio'],
+    },
+    /**
+     * Email del usuario que creó el empleo.
+     * Permite que los usuarios normales solo vean sus propios empleos
+     * y que el admin vea todos.
+     */
+    creadoPor: {
+        type: String,
+        lowercase: true,
+        trim: true,
+        default: 'admin',
+    },
+}, { timestamps: true });
+
+module.exports = mongoose.model('Empleo', empleoSchema);

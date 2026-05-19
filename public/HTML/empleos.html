@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Voluntariados - EventLoop P4</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold">EventLoop</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="empleos.html">Voluntariados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="usuarios.html">Usuarios</a></li>
+                </ul>
+                <span class="navbar-text text-info me-3" id="usuarioActivo">-no login-</span>
+                <button class="btn btn-outline-light btn-sm" id="btnLogout">Cerrar sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <!-- Formulario de alta -->
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 mb-4">
+                    <h4>Nueva Oferta/Demanda</h4>
+                    <form id="formEmpleo">
+                        <input type="text"   id="titulo"      class="form-control mb-2" placeholder="Título" required>
+                        <input type="email"  id="emailEmpleo" class="form-control mb-2" placeholder="Email de contacto" required>
+                        <input type="date"   id="fecha"       class="form-control mb-2" required>
+                        <textarea            id="descripcion" class="form-control mb-2" placeholder="Descripción" required></textarea>
+                        <select             id="tipo"        class="form-select mb-2">
+                            <option value="Oferta">Oferta</option>
+                            <option value="Demanda">Demanda</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary w-100">Publicar</button>
+                    </form>
+                </div>
+
+                <!-- Gráfico dona con Chart.js -->
+                <div class="card shadow-sm p-3 text-center">
+                    <h5 class="mb-1">Estadísticas</h5>
+                    <div id="statsTotal" class="text-muted small mb-2">Total: 0</div>
+                    <canvas id="graficoEmpleos"></canvas>
+                    <div class="d-flex justify-content-center gap-3 mt-2">
+                        <span><span class="badge bg-primary">●</span> Ofertas: <strong id="numOfertas">0</strong></span>
+                        <span><span class="badge bg-warning text-dark">●</span> Demandas: <strong id="numDemandas">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de empleos -->
+            <div class="col-md-8">
+                <div class="card shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="mb-0">Listado</h4>
+                        <span class="badge bg-success">🔴 Actualización en tiempo real</span>
+                    </div>
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Título</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaEmpleos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="module" src="../JS/int_3_empleos.js"></script>
+</body>
+</html>

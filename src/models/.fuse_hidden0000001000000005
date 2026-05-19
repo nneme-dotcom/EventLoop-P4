@@ -1,0 +1,73 @@
+/**
+ * @fileoverview Modelo Mongoose para los usuarios de EventLoop.
+ * Diferencias respecto al Producto 3 (driver nativo):
+ *   - Esquema explícito con validaciones automáticas de Mongoose.
+ *   - Campo "rol" con enum 'admin' | 'usuario' para control de acceso.
+ *   - Hook pre-save que hashea la contraseña automáticamente.
+ *   - Método de instancia "verificarPassword" para autenticación.
+ * @module models/Usuario
+ */
+
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
+const SALT_ROUNDS = 10;
+
+/**
+ * Esquema Mongoose de Usuario.
+ * Mongoose valida tipos, required y enum antes de persistir.
+ */
+const usuarioSchema = new mongoose.Schema({
+    nombre: {
+        type: String,
+        required: [true, 'El nombre es obligatorio'],
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: [true, 'El email es obligatorio'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'El email no tiene un formato válido'],
+    },
+    password: {
+        type: String,
+        required: [true, 'La contraseña es obligatoria'],
+        minlength: [6, 'La contraseña debe tener al menos 6 caracteres'],
+    },
+    /**
+     * Rol del usuario:
+     *   - 'admin'  → puede ver y gestionar TODOS los usuarios y voluntariados.
+     *   - 'usuario' → solo puede ver su propia información y los voluntariados.
+     */
+    rol: {
+        type: String,
+        enum: {
+            values: ['admin', 'usuario'],
+            message: 'El rol debe ser "admin" o "usuario"',
+        },
+        default: 'usuario',
+    },
+}, { timestamps: true });
+
+/**
+ * Hook pre-save: hashea la contraseña si ha sido modificada.
+ * Esto automatiza el proceso que en el P3 hacíamos manualmente en el resolver.
+ */
+usuarioSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
+    next();
+});
+
+/**
+ * Método de instancia: compara una contraseña en texto plano con el hash.
+ * @param {string} passwordPlano - Contraseña introducida por el usuario.
+ * @returns {Promise<boolean>} true si coincide.
+ */
+usuarioSchema.methods.verificarPassword = function (passwordPlano) {
+    return bcrypt.compare(passwordPlano, this.password);
+};
+
+module.exports = mongoose.model('Usuario', usuarioSchema);
