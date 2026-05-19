@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── Validación del formulario ─────────────────────────────────────────────
-        const mostrarError = (id, mensaje) => {
+    const mostrarError = (id, mensaje) => {
         const campo = document.getElementById(id);
         let feedback = campo.nextElementSibling;
         if (!feedback || !feedback.classList.contains('invalid-feedback')) {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-        const validarFormulario = () => {
+    const validarFormulario = () => {
         let valido = true;
 
         const titulo = document.getElementById('titulo').value.trim();
@@ -103,6 +103,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         return valido;
+    };
+
+    // ── Heatmap de actividad ──────────────────────────────────────────────────
+    const dibujarHeatmap = (empleos) => {
+        const grid    = document.getElementById('heatmapGrid');
+        const meses   = document.getElementById('heatmapMeses');
+        const tooltip = document.getElementById('heatmapTooltip');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        meses.innerHTML = '';
+
+        const conteo = {};
+        empleos.forEach(e => {
+            const dia = e.createdAt ? e.createdAt.slice(0, 10) : null;
+            if (dia) conteo[dia] = (conteo[dia] || 0) + 1;
+        });
+
+        const hoy = new Date();
+        const inicio = new Date(hoy);
+        inicio.setMonth(inicio.getMonth() - 5);
+        inicio.setDate(1);
+
+        const maxVal = Math.max(...Object.values(conteo), 1);
+        const colores = ['#eef4fc', '#b5d4f4', '#378add', '#185fa5', '#042c53'];
+        const getColor = (val) => {
+            if (!val) return '#f0f0f0';
+            return colores[Math.min(Math.floor((val / maxVal) * 5), 4)];
+        };
+
+        const dias = [];
+        for (let d = new Date(inicio); d <= hoy; d.setDate(d.getDate() + 1)) {
+            dias.push(new Date(d));
+        }
+
+        const semanas = [];
+        let semana = Array(new Date(inicio).getDay()).fill(null);
+        dias.forEach(d => {
+            semana.push(new Date(d));
+            if (semana.length === 7) { semanas.push(semana); semana = []; }
+        });
+        if (semana.length) { while (semana.length < 7) semana.push(null); semanas.push(semana); }
+
+        const nombresMeses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        let ultimoMes = -1;
+
+        semanas.forEach(sem => {
+            const primero = sem.find(d => d !== null);
+            const span = document.createElement('span');
+            span.style.cssText = 'width:14px;display:inline-block;text-align:left;font-size:11px;';
+            if (primero && primero.getMonth() !== ultimoMes) {
+                span.textContent = nombresMeses[primero.getMonth()];
+                ultimoMes = primero.getMonth();
+            }
+            meses.appendChild(span);
+
+            const col = document.createElement('div');
+            col.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
+            sem.forEach(d => {
+                const cell = document.createElement('div');
+                cell.style.cssText = 'width:14px;height:14px;border-radius:2px;cursor:pointer;';
+                if (!d) {
+                    cell.style.background = 'transparent';
+                } else {
+                    const key = d.toISOString().slice(0, 10);
+                    const val = conteo[key] || 0;
+                    cell.style.background = getColor(val);
+                    cell.addEventListener('mouseenter', () => {
+                        tooltip.style.display = 'block';
+                        tooltip.textContent = key + ' — ' + val + (val === 1 ? ' voluntariado' : ' voluntariados');
+                    });
+                    cell.addEventListener('mousemove', (e) => {
+                        tooltip.style.left = (e.clientX + 12) + 'px';
+                        tooltip.style.top  = (e.clientY - 30) + 'px';
+                    });
+                    cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+                }
+                col.appendChild(cell);
+            });
+            grid.appendChild(col);
+        });
     };
 
     // ── Gráfico dona con Chart.js ─────────────────────────────────────────────
@@ -211,6 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             dibujarGrafico(empleos);
+            dibujarHeatmap(empleos);
         } catch (err) {
             tabla.innerHTML = `<tr><td colspan="4" class="text-danger">${err.message}</td></tr>`;
         }
