@@ -134,7 +134,7 @@ async function main() {
 
     // 10. Arrancar servidor
     const protocolo = usaHTTPS ? 'https' : 'http';
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Servidor EventLoop P4 en ${protocolo}://localhost:${PORT}`);
         console.log(`   GraphiQL: ${protocolo}://localhost:${PORT}/graphql`);
         console.log(`   Frontend: ${protocolo}://localhost:${PORT}/HTML/login.html`);
