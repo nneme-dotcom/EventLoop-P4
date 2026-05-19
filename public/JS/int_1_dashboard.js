@@ -57,72 +57,86 @@ document.addEventListener('DOMContentLoaded', async () => {
         return div;
     };
 
-    // Gráfico de actividad
-    const canvasActividad = document.getElementById('graficoActividad');
-    let chartActividad = null;
+    // Heatmap de actividad
+    const dibujarHeatmap = (empleos) => {
+        const grid    = document.getElementById('heatmapGrid');
+        const meses   = document.getElementById('heatmapMeses');
+        const tooltip = document.getElementById('heatmapTooltip');
+        if (!grid) return;
 
-    const dibujarGraficoActividad = (empleos, seleccionados) => {
-        if (!canvasActividad) return;
+        grid.innerHTML = '';
+        meses.innerHTML = '';
 
-        const agruparPorDia = (items, campo) => {
-            const conteo = {};
-            items.forEach(item => {
-                const fecha = item[campo] ? item[campo].slice(0, 10) : null;
-                if (!fecha) return;
-                conteo[fecha] = (conteo[fecha] || 0) + 1;
-            });
-            return conteo;
+        const conteo = {};
+        empleos.forEach(e => {
+            const dia = e.createdAt ? e.createdAt.slice(0, 10) : null;
+            if (dia) conteo[dia] = (conteo[dia] || 0) + 1;
+        });
+
+        const hoy = new Date();
+        const inicio = new Date(hoy);
+        inicio.setMonth(inicio.getMonth() - 5);
+        inicio.setDate(1);
+
+        const maxVal = Math.max(...Object.values(conteo), 1);
+        const colores = ['#eef4fc', '#b5d4f4', '#378add', '#185fa5', '#042c53'];
+
+        const getColor = (val) => {
+            if (!val) return '#f0f0f0';
+            return colores[Math.min(Math.floor((val / maxVal) * 5), 4)];
         };
 
-        const empleosPorDia      = agruparPorDia(empleos, 'createdAt');
-        const seleccionadosPorDia = agruparPorDia(seleccionados, 'createdAt');
+        const dias = [];
+        for (let d = new Date(inicio); d <= hoy; d.setDate(d.getDate() + 1)) {
+            dias.push(new Date(d));
+        }
 
-        const todasFechas = [...new Set([
-            ...Object.keys(empleosPorDia),
-            ...Object.keys(seleccionadosPorDia),
-        ])].sort();
+        const semanas = [];
+        let semana = Array(new Date(inicio).getDay()).fill(null);
+        dias.forEach(d => {
+            semana.push(new Date(d));
+            if (semana.length === 7) { semanas.push(semana); semana = []; }
+        });
+        if (semana.length) { while (semana.length < 7) semana.push(null); semanas.push(semana); }
 
-        if (chartActividad) { chartActividad.destroy(); chartActividad = null; }
+        const nombresMeses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        let ultimoMes = -1;
 
-        if (todasFechas.length === 0) return;
+        semanas.forEach(sem => {
+            const primero = sem.find(d => d !== null);
+            const span = document.createElement('span');
+            span.style.cssText = 'width:14px;display:inline-block;text-align:left;font-size:11px;';
+            if (primero && primero.getMonth() !== ultimoMes) {
+                span.textContent = nombresMeses[primero.getMonth()];
+                ultimoMes = primero.getMonth();
+            }
+            meses.appendChild(span);
 
-        chartActividad = new Chart(canvasActividad.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: todasFechas,
-                datasets: [
-                    {
-                        label: 'Voluntariados creados',
-                        data: todasFechas.map(f => empleosPorDia[f] || 0),
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13,110,253,0.1)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 4,
-                    },
-                    {
-                        label: 'Selecciones realizadas',
-                        data: todasFechas.map(f => seleccionadosPorDia[f] || 0),
-                        borderColor: '#ffc107',
-                        backgroundColor: 'rgba(255,193,7,0.1)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 4,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 },
-                    },
-                },
-            },
+            const col = document.createElement('div');
+            col.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
+
+            sem.forEach(d => {
+                const cell = document.createElement('div');
+                cell.style.cssText = 'width:14px;height:14px;border-radius:2px;cursor:pointer;';
+                if (!d) {
+                    cell.style.background = 'transparent';
+                } else {
+                    const key = d.toISOString().slice(0, 10);
+                    const val = conteo[key] || 0;
+                    cell.style.background = getColor(val);
+                    cell.addEventListener('mouseenter', (e) => {
+                        tooltip.style.display = 'block';
+                        tooltip.textContent = key + ' — ' + val + (val === 1 ? ' voluntariado' : ' voluntariados');
+                    });
+                    cell.addEventListener('mousemove', (e) => {
+                        tooltip.style.left = (e.clientX + 12) + 'px';
+                        tooltip.style.top  = (e.clientY - 30) + 'px';
+                    });
+                    cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+                }
+                col.appendChild(cell);
+            });
+            grid.appendChild(col);
         });
     };
 
@@ -169,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 obtenerSeleccionados(),
             ]);
             renderizar();
-            dibujarGraficoActividad(todosEmpleos, todosSeleccionados);
+            dibujarHeatmap(todosEmpleos);
         } catch (err) {
             contenedorTarjetas.innerHTML = `<p class="text-danger p-3">Error: ${err.message}</p>`;
         }
