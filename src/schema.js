@@ -18,6 +18,7 @@ module.exports = buildSchema(`
     descripcion: String
     tipo: String
     creadoPor: String
+    createdAt: String
   }
 
   type Seleccionado {
@@ -29,6 +30,7 @@ module.exports = buildSchema(`
     descripcion: String
     tipo: String
     seleccionadoPor: String
+    createdAt: String
   }
 
   type SesionResult {

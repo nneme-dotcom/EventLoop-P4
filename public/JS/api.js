@@ -108,6 +108,7 @@ export async function obtenerEmpleos() {
                 descripcion
                 tipo
                 creadoPor
+                createdAt
             }
         }
     `);
@@ -154,6 +155,7 @@ export async function obtenerSeleccionados() {
                 descripcion
                 tipo
                 seleccionadoPor
+                createdAt
             }
         }
     `);

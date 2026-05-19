@@ -57,6 +57,75 @@ document.addEventListener('DOMContentLoaded', async () => {
         return div;
     };
 
+    // Gráfico de actividad
+    const canvasActividad = document.getElementById('graficoActividad');
+    let chartActividad = null;
+
+    const dibujarGraficoActividad = (empleos, seleccionados) => {
+        if (!canvasActividad) return;
+
+        const agruparPorDia = (items, campo) => {
+            const conteo = {};
+            items.forEach(item => {
+                const fecha = item[campo] ? item[campo].slice(0, 10) : null;
+                if (!fecha) return;
+                conteo[fecha] = (conteo[fecha] || 0) + 1;
+            });
+            return conteo;
+        };
+
+        const empleosPorDia      = agruparPorDia(empleos, 'createdAt');
+        const seleccionadosPorDia = agruparPorDia(seleccionados, 'createdAt');
+
+        const todasFechas = [...new Set([
+            ...Object.keys(empleosPorDia),
+            ...Object.keys(seleccionadosPorDia),
+        ])].sort();
+
+        if (chartActividad) { chartActividad.destroy(); chartActividad = null; }
+
+        if (todasFechas.length === 0) return;
+
+        chartActividad = new Chart(canvasActividad.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: todasFechas,
+                datasets: [
+                    {
+                        label: 'Voluntariados creados',
+                        data: todasFechas.map(f => empleosPorDia[f] || 0),
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13,110,253,0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                    },
+                    {
+                        label: 'Selecciones realizadas',
+                        data: todasFechas.map(f => seleccionadosPorDia[f] || 0),
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255,193,7,0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                    },
+                },
+            },
+        });
+    };
+
     // Estado local
     let todosEmpleos = [];
     let todosSeleccionados = [];
@@ -100,6 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 obtenerSeleccionados(),
             ]);
             renderizar();
+            dibujarGraficoActividad(todosEmpleos, todosSeleccionados);
         } catch (err) {
             contenedorTarjetas.innerHTML = `<p class="text-danger p-3">Error: ${err.message}</p>`;
         }

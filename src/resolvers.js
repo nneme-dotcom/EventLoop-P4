@@ -59,6 +59,7 @@ function createResolvers(io) {
                 descripcion: e.descripcion,
                 tipo: e.tipo,
                 creadoPor: e.creadoPor,
+                createdAt: e.createdAt ? e.createdAt.toISOString() : null,
             }));
         },
 
@@ -76,6 +77,7 @@ function createResolvers(io) {
                 descripcion: s.descripcion,
                 tipo: s.tipo,
                 seleccionadoPor: s.seleccionadoPor,
+                createdAt: s.createdAt ? s.createdAt.toISOString() : null,
             }));
         },
 
