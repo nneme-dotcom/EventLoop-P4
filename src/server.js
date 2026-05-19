@@ -76,9 +76,9 @@ async function main() {
         },
     }));
 
-    // 5. Crear servidor HTTPS (o HTTP de fallback si no hay cert)
+    // 5. Crear servidor HTTPS (o HTTP de fallback si no hay cert o DISABLE_HTTPS=true)
     let server;
-    const usaHTTPS = fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH);
+    const usaHTTPS = !process.env.DISABLE_HTTPS && fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH);
     if (usaHTTPS) {
         const credentials = {
             key:  fs.readFileSync(KEY_PATH),
