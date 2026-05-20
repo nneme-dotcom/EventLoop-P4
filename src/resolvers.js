@@ -49,7 +49,7 @@ function createResolvers(io) {
                 obtenerEmpleos: async (args, { req }) => {
             requireAuth(req);
             const sesion = getSesion(req);
-            const filtro = sesion.rol === 'admin' ? {} : { creadoPor: sesion.email };
+            const filtro = {};
             const empleos = await Empleo.find(filtro).sort({ createdAt: -1 });
             return empleos.map(e => ({
                 id: e._id,
